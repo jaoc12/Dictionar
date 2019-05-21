@@ -1,76 +1,106 @@
 #pragma once
 
+#include <stdexcept>
 #include "Nod.h"
 
 template <class K, class V>
 class Dictionar{
-public:
+private:
+	// functii interne
 	Nod<K, V>* root;
 	Nod<K, V>* Insert(K, V);
 	void RotireDreapta(Nod<K, V>*);
 	void RotireStanga(Nod<K, V>*);
 	void Corectare(Nod<K, V>*, K);
-	void afisare(Nod<K, V>*);
 	void Copy(const Nod<K, V>*);
 	void Delete(Nod<K, V>*);
-	ostream& InOrder(ostream&, const Nod<K, V>*) const;
+	ostream& Preorder(ostream&, const Nod<K, V>*) const;
 	Nod<K, V>* Succesor(Nod<K, V>*);
 	void BST_Remove(Nod<K, V>*);
 	int getHeight(Nod<K, V>*);
 	void setHeight(Nod<K, V>*);
+	Nod<K, V>* Find(const K);
 public:
+	// constructori
 	Dictionar<K, V>(const Dictionar<K, V>&);
 	Dictionar<K, V>();
 	~Dictionar<K, V>();
+	// supraincarcare operatori
 	Dictionar<K, V>& operator = (const Dictionar<K, V>&);
-	V& operator [] (const K) const;
-	template <class T, class U>
-	friend ostream& operator << (ostream& out, const Dictionar<T, U>& ob);
+	V& operator [] (K) const;
 	void Add(K, V);
 	void Remove(K);
-	Nod<K, V>* Find(const K);
+	// sterge toate elementele din dictionar
 	void Clear();
+	// cautare element
+	bool InDictionary(K) const;
+	bool IsEmpty() const;
+	// supraincarcare afisare
+	template <class T, class U>
+	friend ostream& operator << (ostream& out, const Dictionar<T, U>& ob);
 };
 
 template<class K, class V>
 Dictionar<K, V>::Dictionar(const Dictionar<K, V> &ob){
+	// apelam functia de copiere recursiva
 	Copy(ob.root);
 }
 
 template<class K, class V>
 Dictionar<K, V>::Dictionar(){
+	// constructor cu dictionar vid
 	root = nullptr;
 }
 
 template<class K, class V>
 Dictionar<K, V>::~Dictionar(){
+	// apelare functie de stergere recursiva
 	Delete(root);
 }
 
 template<class K, class V>
  Dictionar<K, V>& Dictionar<K, V>::operator=(const Dictionar<K, V>& ob){
+	 // verificam daca obiectul este acelasi
 	 if (this == &ob) {
 		 return *this;
 	 }
+	 // stergem ce se afla in dictionar
 	 Clear();
+	 // apelam functia de copiere recursiva
 	 Copy(ob.root);
 	 return *this;
 }
 
  template<class K, class V>
- V& Dictionar<K, V>::operator[](const K k) const{
-	 return Find(k)->value;
+ V& Dictionar<K, V>::operator[](K k) const{
+	 Nod<K, V>* curent = root;
+	 // cautam nodul cu cheia data
+	 while (curent != nullptr) {
+		 if (k == curent->key) {
+			 return curent->value;
+		 }
+		 if (k < curent->key) {
+			 curent = curent->st;
+		 }
+		 if (k > curent->key) {
+			 curent = curent->dr;
+		 }
+	 }
+	 // exceptie daca este necesar
+	 throw out_of_range("Cheia nu se gaseste in dictionar");
  }
 
  template<class K, class V>
  ostream& operator<<(ostream& out, const Dictionar<K, V>& ob){
-	 return ob.InOrder(out, ob.root);
+	 // afisare radacina-stanga-dreapta recursiv
+	 return ob.Preorder(out, ob.root);
  }
 
 template<class K, class V>
 Nod<K, V>* Dictionar<K, V>::Insert(K k, V v)
 {
 	Nod<K, V>* temp = new Nod<K, V>(k, v);
+	// caz dictionar gol
 	if (root == nullptr) {
 		root = temp;
 		return temp;
@@ -78,6 +108,7 @@ Nod<K, V>* Dictionar<K, V>::Insert(K k, V v)
 	Nod<K, V>* curent = root;
 	Nod<K, V>* prev = nullptr;
 	while (curent != nullptr) {
+		// caz in care cheia exista
 		if (k == curent->key) {
 			curent->value = v;
 			return root;
@@ -94,6 +125,7 @@ Nod<K, V>* Dictionar<K, V>::Insert(K k, V v)
 		}
 	}
 	curent = temp;
+	// legaturi intre noul nod si parintele sau
 	if (k < prev->key) {
 		prev->st = curent;
 	}
@@ -101,6 +133,7 @@ Nod<K, V>* Dictionar<K, V>::Insert(K k, V v)
 		prev->dr = curent;
 	}
 	curent->parent = prev;
+	// crestem inaltimea parintilor
 	do {
 		prev->height++;
 		prev = prev->parent;
@@ -112,6 +145,8 @@ template<class K, class V>
 void Dictionar<K, V>::RotireDreapta(Nod<K, V>* curent){
 	Nod<K, V>* fiu = curent->st;
 	Nod<K, V>* fiuDreapta = fiu->dr;
+	// caz in care nu rotim radacina
+	// si trebuie schimbat tatal nodului rotit
 	if (curent-> parent != nullptr) {
 		if (curent->parent->dr == curent) {
 			curent->parent->dr = fiu;
@@ -120,6 +155,7 @@ void Dictionar<K, V>::RotireDreapta(Nod<K, V>* curent){
 			curent->parent->st = fiu;
 		}
 	}
+	// schimbare de pozitii
 	fiu->parent = curent->parent;
 	curent->parent = fiu;
 	if(fiuDreapta!=nullptr)
@@ -128,9 +164,11 @@ void Dictionar<K, V>::RotireDreapta(Nod<K, V>* curent){
 	curent->st = fiuDreapta;
 	if (root == curent)
 		root = fiu;
+	// innoim inaltimea
 	setHeight(root);
 }
 
+// analog rotire dreapta
 template<class K, class V>
 void Dictionar<K, V>::RotireStanga(Nod<K, V>* curent){
 	Nod<K, V>* fiu = curent->dr;
@@ -154,6 +192,7 @@ void Dictionar<K, V>::RotireStanga(Nod<K, V>* curent){
 	setHeight(root);
 }
 
+// aplicam algoritmul de balansare pentru adaugare
 template<class K, class V>
 void Dictionar<K, V>::Corectare(Nod<K, V>* curent, K k){
 	while (curent != nullptr) {
@@ -186,16 +225,8 @@ void Dictionar<K, V>::Corectare(Nod<K, V>* curent, K k){
 }
 
 template<class K, class V>
-void Dictionar<K, V>::afisare(Nod<K, V>* curent){
-	if (curent != nullptr) {
-		cout << curent->value << endl;
-		afisare(curent->st);
-		afisare(curent->dr);
-	}
-}
-
-template<class K, class V>
 void Dictionar<K, V>::Copy(const Nod<K, V>* nod_ob){
+	// adaugam recursiv nodurile din obiectul copiat
 	if (nod_ob != nullptr) {
 		Add(nod_ob->key, nod_ob->value);
 		Copy(nod_ob->st);
@@ -206,6 +237,7 @@ void Dictionar<K, V>::Copy(const Nod<K, V>* nod_ob){
 
 template<class K, class V>
 void Dictionar<K, V>::Delete(Nod<K, V>* curent){
+	// stergem recursiv
 	if (curent != nullptr) {
 		Delete(curent->st);
 		Delete(curent->dr);
@@ -215,17 +247,19 @@ void Dictionar<K, V>::Delete(Nod<K, V>* curent){
 }
 
 template<class K, class V>
-ostream & Dictionar<K, V>::InOrder(ostream & out, const Nod<K, V>* curent) const{
+ostream & Dictionar<K, V>::Preorder(ostream & out, const Nod<K, V>* curent) const{
+	// afisare recursiva
 	if (curent != nullptr) {
-		InOrder(out, curent->st);
-		out << curent->key << ":" << curent->height << endl;
-		InOrder(out, curent->dr);
+		out << curent->key << ":" << curent->value << endl;
+		Preorder(out, curent->st);
+		Preorder(out, curent->dr);
 	}
 	return out;
 }
 
 template<class K, class V>
 Nod<K, V>* Dictionar<K, V>::Succesor(Nod<K, V>* curent){
+	// cautam succesorul unui nod
 	Nod<K, V>* temp = curent->dr;
 	while (temp->st != nullptr) {
 		temp = temp->st;
@@ -233,8 +267,10 @@ Nod<K, V>* Dictionar<K, V>::Succesor(Nod<K, V>* curent){
 	return temp;
 }
 
+// functie de eliminare dintr-un BST standard
 template<class K, class V>
 void Dictionar<K, V>::BST_Remove(Nod<K, V>* curent){
+	// caz frunza
 	if (curent->st == nullptr && curent->dr == nullptr) {
 		if (curent->parent->key < curent->key) {
 			curent->parent->dr = nullptr;
@@ -246,6 +282,7 @@ void Dictionar<K, V>::BST_Remove(Nod<K, V>* curent){
 		curent = nullptr;
 		return;
 	}
+	// caz doar cu fiu stang
 	if (curent->dr == nullptr) {
 		if (curent != root) {
 			if (curent->parent->key < curent->key) {
@@ -265,6 +302,7 @@ void Dictionar<K, V>::BST_Remove(Nod<K, V>* curent){
 		return;
 
 	}
+	// caz doar cu fiu drept
 	if (curent->st == nullptr) {
 		if (curent != root) {
 			if (curent->parent->key < curent->key) {
@@ -283,7 +321,9 @@ void Dictionar<K, V>::BST_Remove(Nod<K, V>* curent){
 		curent = nullptr;
 		return;
 	}
+	// caz cu doi fii
 	Nod<K, V>* succesor = Succesor(curent);
+	// caz in care succesorul este nodul aflat in dreapta
 	if(succesor==curent->dr){
 		if (curent != root) {
 			if (curent->parent->key < curent->key) {
@@ -306,6 +346,7 @@ void Dictionar<K, V>::BST_Remove(Nod<K, V>* curent){
 		curent = nullptr;
 		return;
 	}
+	// caz in care succesorul este in stanga nodului din dreapta
 	if (curent != root) {
 		if (curent->parent->key < curent->key) {
 			curent->parent->dr = succesor;
@@ -335,6 +376,7 @@ void Dictionar<K, V>::BST_Remove(Nod<K, V>* curent){
 
 template<class K, class V>
 int Dictionar<K, V>::getHeight(Nod<K, V>* curent){
+	// functie de calculare a inaltimii unui nod in mod recursiv
 	if (curent == nullptr) {
 		return 0;
 	}
@@ -346,6 +388,7 @@ int Dictionar<K, V>::getHeight(Nod<K, V>* curent){
 
 template<class K, class V>
 void Dictionar<K, V>::setHeight(Nod<K, V>* curent) {
+	// functie care actualizeaza inaltimea unui subarbore
 	if (curent == nullptr){
 		return;
 	}
@@ -360,6 +403,7 @@ void Dictionar<K, V>::setHeight(Nod<K, V>* curent) {
 
 template<class K, class V>
 void Dictionar<K, V>::Add(K k, V v){
+	// functie care adauga nod in arbore si il balanseaza dupa
 	Nod<K, V>* temp = Insert(k, v);
 	setHeight(root);
 	Corectare(temp, k);
@@ -369,8 +413,10 @@ template<class K, class V>
 void Dictionar<K, V>::Remove(K k){
 	Nod<K, V>* temp = Find(k);
 	Nod<K, V>* curent = temp->parent;
+	// stergere standard
 	BST_Remove(temp);
 	setHeight(root);
+	// mergem in sus pe arbore si il balansam
 	while (curent != nullptr) {
 		int echilibru = curent->st->Height() - curent->dr->Height();
 		if (echilibru > 1) {
@@ -389,6 +435,7 @@ void Dictionar<K, V>::Remove(K k){
 			if (curent->dr->st->Height() - curent->dr->dr->Height() <= 0) {
 				RotireStanga(curent);
 			}
+			// dreapta stanga
 			else {
 				RotireDreapta(curent->dr);
 				RotireStanga(curent);
@@ -400,6 +447,7 @@ void Dictionar<K, V>::Remove(K k){
 
 template<class K, class V>
 Nod<K, V>* Dictionar<K, V>::Find(const K k){
+	// functie ce returneaza un nod dupa cheia cautata
 	Nod<K, V>* curent = root;
 	while (curent != nullptr) {
 		if (k == curent->key) {
@@ -412,11 +460,39 @@ Nod<K, V>* Dictionar<K, V>::Find(const K k){
 			curent = curent->dr;
 		}
 	}
-	// De facut exceptie
+	throw out_of_range("Cheia nu se gaseste in dictionar");
 }
 
 template<class K, class V>
 void Dictionar<K, V>::Clear(){
+	// functie de sters ce se afla in dictionar
 	this->~Dictionar();
 	this->root = nullptr;
+}
+
+template<class K, class V>
+bool Dictionar<K, V>::InDictionary(K k) const{
+	// functie ce returneaza daca un nod cu cheia k se afla in dictionar
+	Nod<K, V>* curent = root;
+	while (curent != nullptr) {
+		if (k == curent->key) {
+			return true;
+		}
+		if (k < curent->key) {
+			curent = curent->st;
+		}
+		if (k > curent->key) {
+			curent = curent->dr;
+		}
+	}
+	return false;
+}
+
+template<class K, class V>
+bool Dictionar<K, V>::IsEmpty() const{
+	// verifica daca dictionarul este vid
+	if (root == nullptr) {
+		return true;
+	}
+	return false;
 }

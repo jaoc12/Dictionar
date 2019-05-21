@@ -2,11 +2,12 @@
 
 #include <iostream>
 #include <algorithm>
+#include <string>
 using namespace std;
 
 template <class K, class V>
 class Nod{
-public:
+private:
 	Nod<K, V> *st, *dr, *parent;
 	int height;
 	K key;

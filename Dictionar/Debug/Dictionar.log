@@ -1,3 +1,17 @@
 ﻿  Dictionar.cpp
-c:\users\chitu\desktop\scoala\info\semestrul 2\poo\proiectul3\dictionar\dictionar\dictionar.h(416): warning C4715: 'Dictionar<int,int>::Find': not all control paths return a value
+c:\users\chitu\desktop\scoala\info\semestrul 2\poo\proiectul3\dictionar\dictionar\dictionar.cpp(27): warning C4305: 'argument': truncation from 'double' to 'K'
+          with
+          [
+              K=float
+          ]
+c:\users\chitu\desktop\scoala\info\semestrul 2\poo\proiectul3\dictionar\dictionar\dictionar.cpp(28): warning C4305: 'argument': truncation from 'double' to 'K'
+          with
+          [
+              K=float
+          ]
+c:\users\chitu\desktop\scoala\info\semestrul 2\poo\proiectul3\dictionar\dictionar\dictionar.cpp(36): warning C4305: 'argument': truncation from 'double' to 'K'
+          with
+          [
+              K=float
+          ]
   Dictionar.vcxproj -> C:\Users\chitu\Desktop\Scoala\INFO\Semestrul 2\POO\Proiectul3\Dictionar\Debug\Dictionar.exe
